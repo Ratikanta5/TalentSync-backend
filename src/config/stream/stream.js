@@ -1,4 +1,6 @@
 const { StreamChat } = require('stream-chat');
+const { StreamClient } = require('@stream-io/node-sdk');
+
 
 const apiKey = process.env.STREAM_API_KEY;
 const apiSecret = process.env.STREAM_API_SECRET;
@@ -8,7 +10,11 @@ if (!apiKey || !apiSecret) {
     process.exit(1);
 }
 
-const chatClient = StreamChat.getInstance(apiKey, apiSecret);
+
+const chatClient = StreamChat.getInstance(apiKey, apiSecret); //this is for chat features
+const streamClient = new StreamClient(apiKey, apiSecret); //this will be use for videocalls
+
+
 
 const upsertStreamUser = async (userData) => {
     try {
@@ -30,6 +36,7 @@ const deleteStreamUser = async (userId) => {
 
 module.exports = {
     chatClient,
+    streamClient,
     upsertStreamUser,
     deleteStreamUser
 };

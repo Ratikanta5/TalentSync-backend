@@ -10,7 +10,8 @@ const {serve} = require('inngest/express');
 const { inngest , functions} = require('./config/inngest/inngest');
 const {clerkMiddleware} = require('@clerk/express');
 const { protectRoute } = require('./middleware/protectRoute');
-const chatRoute = require('./routes/chatRoute');
+const chatRoutes = require('./routes/chatRoute');
+const sessionRoutes = require('./routes/sessionRoute');
 
 connectDB();
 
@@ -30,7 +31,8 @@ app.use(clerkMiddleware())
 
 app.use("/api/inngest", serve({client: inngest, functions}));
 
-app.use("/api/chat", chatRoute);
+app.use("/api/chat", chatRoutes);
+app.use("/api/sessions", sessionRoutes);
 
 app.get("/health",(req,res)=>{
   res.status(200).json({msg:"api is up and running"});
