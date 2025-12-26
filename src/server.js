@@ -7,7 +7,7 @@ const app = express();
 const connectDB = require('./config/db/connectDB');
 const cors = require('cors');
 const {serve} = require('inngest/express');
-const { inngest } = require('./config/inngest/inngest');
+const { inngest , functions} = require('./config/inngest/inngest');
 
 connectDB();
 
