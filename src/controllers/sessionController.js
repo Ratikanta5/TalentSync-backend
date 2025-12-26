@@ -97,9 +97,16 @@ module.exports.joinSession = async (req, res) => {
 
         if (!session) return res.status(404).josn({ msg: "Session not found" });
 
+        if (session.status !== "active") {
+            return res.status(400).json({ msg: "can not join a complete session" })
+        }
+
+        if (session.host.toString() === userId.toString()) {
+            return res.status(400).json({ msg: "Host can not join there own session as participant" });
+        }
         //check if session is already full -  has a participant
 
-        if (session.participant) return res.status(404).json({ msg: "Session is full" });
+        if (session.participant) return res.status(409).json({ msg: "Session is full" });
 
         session.participant = userId;
         await session.save();
@@ -147,6 +154,10 @@ module.exports.endSession = async (req, res) => {
         //delete stream chat channel
         const channel = chatClient.channel("messaging", session.callId);
         await channel.delete();
+
+
+        session.status = "completed"
+        await session.save();
 
         res.status(200).json({ session, msg: "Session ended Successfully" });
 
