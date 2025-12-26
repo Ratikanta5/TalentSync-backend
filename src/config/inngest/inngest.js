@@ -1,6 +1,6 @@
 const { Inngest } = require("inngest");
 const connectDB = require("../db/connectDB");
-const User = require("../../models/User");
+const { User } = require("../../models/User");
 
 // Create Inngest client
 const inngest = new Inngest({
