@@ -8,6 +8,9 @@ const connectDB = require('./config/db/connectDB');
 const cors = require('cors');
 const {serve} = require('inngest/express');
 const { inngest , functions} = require('./config/inngest/inngest');
+const {clerkMiddleware} = require('@clerk/express');
+const { protectRoute } = require('./middleware/protectRoute');
+const chatRoute = require('./routes/chatRoute');
 
 connectDB();
 
@@ -21,17 +24,19 @@ app.use(
     credentials: true,
   })
 );
+app.use(clerkMiddleware())
+
 
 
 app.use("/api/inngest", serve({client: inngest, functions}));
 
+app.use("/api/chat", chatRoute);
+
 app.get("/health",(req,res)=>{
-  res.status(200).json({message:"api is up and running"});
+  res.status(200).json({msg:"api is up and running"});
 })
 
-app.get("/books",(req,res)=>{
-  res.send("this is books");
-})
+
 
 app.listen(process.env.PORT, () => {
   console.log(`✅ Server is running on http://localhost:${process.env.PORT}`);
