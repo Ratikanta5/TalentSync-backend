@@ -11,8 +11,8 @@ module.exports.protectRoute = [
             const clerkId = req.auth().userId; //if we are login this check your details who you are and store you in req.user;
             if (!clerkId) return res.status(401).json({ msg: "unauthorized: invalid token" })
 
-            //find user  in db by clerkId
-            const user = await user.findOne({ clerkId });
+            //find user in db by clerkId
+            const user = await User.findOne({ clerkId });
 
             if (!user) return res.status(404).json({ msg: "user not found" });
 

@@ -38,7 +38,11 @@ app.get("/health",(req,res)=>{
   res.status(200).json({msg:"api is up and running"});
 })
 
-
+// Catch 404
+app.use((req, res) => {
+  console.log("404 Not Found:", req.method, req.url);
+  res.status(404).json({ msg: "Route not found" });
+})
 
 app.listen(process.env.PORT, () => {
   console.log(`✅ Server is running on http://localhost:${process.env.PORT}`);
