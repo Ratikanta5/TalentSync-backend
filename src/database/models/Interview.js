@@ -2,6 +2,35 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const crypto = require('crypto');
 
+const interviewQuestionSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  summary: {
+    type: String,
+    default: ''
+  },
+  level: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    default: 'medium'
+  },
+  problemStatement: {
+    type: String,
+    default: ''
+  },
+  timer: {
+    type: Number,
+    default: 30
+  },
+  addedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { _id: true });
+
 // Interview Session Model
 const interviewSchema = new Schema({
   // Session Identification
@@ -46,6 +75,7 @@ const interviewSchema = new Schema({
   },
   description: String,
   company: String,
+  questions: [interviewQuestionSchema],
 
   // Scheduling & Duration
   scheduledFor: Date,  // When interview is scheduled

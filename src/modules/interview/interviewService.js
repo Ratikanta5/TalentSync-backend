@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Interview = require('../../database/models/Interview');
 const User = require('../../database/models/User');
 const Problem = require('../../database/models/Problem');
@@ -59,8 +60,8 @@ class InterviewService {
       }
 
       if (filters.status) query.status = filters.status;
-      if (filters.difficulty) {
-        query['questions.difficulty'] = filters.difficulty;
+      if (filters.level) {
+        query['questions.level'] = filters.level;
       }
 
       const interviews = await Interview.find(query)
@@ -119,12 +120,12 @@ class InterviewService {
       if (!interview) throw new Error('Interview not found');
 
       const question = {
-        _id: new require('mongoose').Types.ObjectId(),
+        _id: new mongoose.Types.ObjectId(),
         title: questionData.title,
-        description: questionData.description || '',
-        difficulty: questionData.difficulty || 'medium',
-        timeLimit: questionData.timeLimit || 30,
-        language: questionData.language || 'javascript',
+        summary: questionData.summary || '',
+        level: questionData.level || 'medium',
+        problemStatement: questionData.problemStatement || '',
+        timer: questionData.timer || 30,
         addedAt: new Date()
       };
 

@@ -86,8 +86,8 @@ const validateSubmission = (data) => {
     errors.push('Code cannot be empty');
   }
 
-  if (!data.language || !['javascript', 'python', 'java'].includes(data.language)) {
-    errors.push('Invalid programming language (javascript, python, java)');
+  if (!data.language || !['javascript', 'python', 'python3', 'java', 'cpp', 'c++'].includes(data.language)) {
+    errors.push('Invalid programming language (javascript, python, java, cpp)');
   }
 
   return {

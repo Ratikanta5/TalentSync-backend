@@ -13,6 +13,30 @@ const controller = new InterviewController();
 
 // ================== CREATE & READ ROUTES ==================
 
+router.get('/code-runtime-health', async (req, res) => {
+  try {
+    await controller.getCodeRuntimeHealth(req, res);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check code runtime health',
+      message: error.message
+    });
+  }
+});
+
+router.post('/execute-code', async (req, res) => {
+  try {
+    await controller.executeCode(req, res);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to execute code',
+      message: error.message
+    });
+  }
+});
+
 /**
  * POST /api/interviews
  * Create a new interview

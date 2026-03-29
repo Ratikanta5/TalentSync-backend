@@ -37,6 +37,11 @@ router.post('/:id/reject', interviewController.rejectInterview);
 // Delete interview (only draft or cancelled)
 router.delete('/:id', interviewController.deleteInterview);
 
+// ================== QUESTION MANAGEMENT ROUTES ==================
+
+router.post('/:id/questions', interviewController.addQuestion);
+router.delete('/:id/questions/:questionId', interviewController.deleteQuestion);
+
 // ================== CANDIDATE MANAGEMENT ROUTES ==================
 
 // Add candidate to interview

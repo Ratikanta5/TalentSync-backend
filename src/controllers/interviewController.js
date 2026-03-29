@@ -3,6 +3,15 @@ const User = require('../database/models/User');
 const mongoose = require('mongoose');
 const { upsertStreamUser, streamClient, chatClient } = require('../config/stream/stream');
 
+function resolveViewerRole(interview, currentUserId) {
+  const interviewerId =
+    interview?.interviewer?._id?.toString?.() ||
+    interview?.interviewer?.toString?.() ||
+    null;
+
+  return interviewerId === currentUserId.toString() ? 'interviewer' : 'candidate';
+}
+
 // ================== CREATE INTERVIEW ==================
 /**
  * Create a new interview
@@ -111,8 +120,8 @@ exports.getInterviewById = async (req, res) => {
     // Try to find by MongoDB ObjectId first
     try {
       interview = await Interview.findById(id)
-        .populate('interviewer', 'name email avatar company')
-        .populate('candidates.userId', 'name email avatar role');
+        .populate('interviewer', 'name email avatar company clerkId role')
+        .populate('candidates.userId', 'name email avatar role clerkId');
     } catch (err) {
       // If findById fails, try by sessionId
       interview = null;
@@ -121,8 +130,8 @@ exports.getInterviewById = async (req, res) => {
     // If not found by ID, try by sessionId
     if (!interview) {
       interview = await Interview.findOne({ sessionId: id })
-        .populate('interviewer', 'name email avatar company')
-        .populate('candidates.userId', 'name email avatar role');
+        .populate('interviewer', 'name email avatar company clerkId role')
+        .populate('candidates.userId', 'name email avatar role clerkId');
     }
 
     if (!interview) {
@@ -134,13 +143,131 @@ exports.getInterviewById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: interview
+      data: {
+        ...interview.toObject(),
+        viewerRole: resolveViewerRole(interview, req.user._id)
+      }
     });
   } catch (error) {
     console.error('Get interview error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch interview',
+      error: error.message
+    });
+  }
+};
+
+// ================== QUESTION MANAGEMENT ==================
+exports.addQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const {
+      title,
+      description,
+      difficulty,
+      timeLimit,
+      language,
+      starterCode,
+      contentType,
+      attachmentName,
+      attachmentMimeType,
+      attachmentData
+    } = req.body;
+
+    const interview = await Interview.findById(id);
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found'
+      });
+    }
+
+    if (interview.interviewer.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the interviewer can add questions'
+      });
+    }
+
+    if (!title?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Question title is required'
+      });
+    }
+
+    const normalizedContentType = ['pdf', 'image'].includes(contentType) ? contentType : 'text';
+
+    interview.questions.push({
+      title: title.trim(),
+      description: description?.trim() || '',
+      difficulty: difficulty || 'medium',
+      timeLimit: Number(timeLimit) || 30,
+      language: language || 'javascript',
+      starterCode: starterCode || '',
+      contentType: normalizedContentType,
+      attachmentName: attachmentName || '',
+      attachmentMimeType: attachmentMimeType || '',
+      attachmentData: attachmentData || ''
+    });
+
+    await interview.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Question added successfully',
+      data: interview
+    });
+  } catch (error) {
+    console.error('Add question error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add question',
+      error: error.message
+    });
+  }
+};
+
+exports.deleteQuestion = async (req, res) => {
+  try {
+    const { id, questionId } = req.params;
+    const userId = req.user._id;
+
+    const interview = await Interview.findById(id);
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found'
+      });
+    }
+
+    if (interview.interviewer.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the interviewer can delete questions'
+      });
+    }
+
+    interview.questions = (interview.questions || []).filter(
+      (question) => question._id.toString() !== questionId
+    );
+
+    await interview.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Question deleted successfully',
+      data: interview
+    });
+  } catch (error) {
+    console.error('Delete question error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete question',
       error: error.message
     });
   }

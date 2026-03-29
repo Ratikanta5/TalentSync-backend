@@ -2,11 +2,13 @@ if(process.env.NODE_ENV != "production"){
     require('dotenv').config()
 }
 const dns = require('dns');
+const http = require('http');
 
 dns.setServers(['8.8.8.8', '1.1.1.1']); // Google + Cloudflare
 
 const express = require('express');
 const app = express();
+const server = http.createServer(app);
 const connectDB = require('./config/db/connectDB');
 const cors = require('cors');
 const {serve} = require('inngest/express');
@@ -14,6 +16,9 @@ const { inngest , functions} = require('./config/inngest/inngest');
 const {clerkMiddleware} = require('@clerk/express');
 const { protectRoute } = require('./middleware/protectRoute');
 const seedProblems = require('./seeds/practiceProblems');
+const { initializeSocketServer } = require('./config/websocket/socketServer');
+const { BACKEND_PORT, BACKEND_HOST, BACKEND_PUBLIC_URL, ALLOWED_ORIGINS } =
+  require('./config/appConfig');
 
 // Import routes - Legacy routes
 const chatRoutes = require('./routes/chatRoute');
@@ -34,7 +39,7 @@ seedProblems().catch(err => console.error('Seed error:', err));
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: ALLOWED_ORIGINS,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -66,8 +71,10 @@ app.use((req, res) => {
   res.status(404).json({ msg: "Route not found" });
 })
 
-app.listen(process.env.PORT, () => {
-  console.log(`✅ Server is running on http://localhost:${process.env.PORT}`);
+initializeSocketServer(server);
+
+server.listen(BACKEND_PORT, BACKEND_HOST, () => {
+  console.log(`✅ Server is running on ${BACKEND_PUBLIC_URL}`);
 });
 
 

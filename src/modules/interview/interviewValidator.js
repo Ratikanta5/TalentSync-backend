@@ -30,23 +30,21 @@ const validateQuestionData = (data) => {
     errors.push('Question title is required');
   }
 
-  if (!data.description || data.description.trim().length === 0) {
-    errors.push('Question description is required');
+  if (!data.summary || data.summary.trim().length === 0) {
+    errors.push('Question summary is required');
   }
 
-  if (!data.difficulty || !['easy', 'medium', 'hard'].includes(data.difficulty)) {
-    errors.push('Invalid difficulty level');
+  if (!data.level || !['easy', 'medium', 'hard'].includes(data.level)) {
+    errors.push('Invalid level');
   }
 
-  if (!data.testCases || data.testCases.length === 0) {
-    errors.push('At least one test case is required');
+  if (!data.problemStatement || data.problemStatement.trim().length === 0) {
+    errors.push('Full problem statement is required');
   }
 
-  if (data.testCases) {
-    data.testCases.forEach((tc, idx) => {
-      if (!tc.input) errors.push(`Test case ${idx + 1}: input is required`);
-      if (!tc.expectedOutput) errors.push(`Test case ${idx + 1}: expectedOutput is required`);
-    });
+  const timerValue = Number(data.timer);
+  if (!Number.isFinite(timerValue) || timerValue < 1 || timerValue > 180) {
+    errors.push('Timer must be between 1 and 180 minutes');
   }
 
   return {
@@ -62,7 +60,7 @@ const validateCodeSubmission = (data) => {
     errors.push('Code cannot be empty');
   }
 
-  if (!data.language || !['javascript', 'python', 'java'].includes(data.language)) {
+  if (!data.language || !['javascript', 'python', 'python3', 'java', 'cpp', 'c++'].includes(data.language)) {
     errors.push('Invalid programming language');
   }
 

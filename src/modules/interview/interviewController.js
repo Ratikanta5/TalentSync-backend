@@ -1,5 +1,21 @@
 const InterviewService = require('./interviewService');
 const { validateInterviewCreation, validateQuestionData } = require('./interviewValidator');
+const codeExecutor = require('../../services/codeExecutor');
+
+function withViewerRole(interview, currentUserId) {
+  if (!interview) return interview;
+
+  const raw = typeof interview.toObject === 'function' ? interview.toObject() : interview;
+  const interviewerId =
+    raw?.interviewer?._id?.toString?.() ||
+    raw?.interviewer?.toString?.() ||
+    null;
+
+  return {
+    ...raw,
+    viewerRole: interviewerId === currentUserId.toString() ? 'interviewer' : 'candidate'
+  };
+}
 
 class InterviewController {
   constructor() {
@@ -68,13 +84,13 @@ class InterviewController {
     try {
       const userId = req.user._id;
       const role = req.user.role;
-      const { status, difficulty, limit, skip } = req.query;
+      const { status, level, limit, skip } = req.query;
 
       console.log(`📖 Fetching interviews for user ${userId} (role: ${role})`);
 
       const interviews = await this.interviewService.getUserInterviews(userId, role, {
         status,
-        difficulty,
+        level,
         limit: parseInt(limit) || 20,
         skip: parseInt(skip) || 0
       });
@@ -119,7 +135,7 @@ class InterviewController {
 
       res.status(200).json({
         success: true,
-        data: interview
+        data: withViewerRole(interview, req.user._id)
       });
     } catch (error) {
       res.status(404).json({
@@ -149,7 +165,7 @@ class InterviewController {
       res.status(200).json({
         success: true,
         message: 'Question added successfully',
-        data: interview
+        data: withViewerRole(interview, req.user._id)
       });
     } catch (error) {
       res.status(500).json({
@@ -176,7 +192,7 @@ class InterviewController {
       res.status(200).json({
         success: true,
         message: 'Interview started successfully',
-        data: interview
+        data: withViewerRole(interview, req.user._id)
       });
     } catch (error) {
       res.status(500).json({
@@ -224,6 +240,69 @@ class InterviewController {
       res.status(500).json({
         success: false,
         error: error.message
+      });
+    }
+  }
+
+  /**
+   * POST /api/interviews/execute-code
+   * Execute code in the selected language
+   */
+  async executeCode(req, res) {
+    try {
+      const { code, language, input, timeLimit } = req.body;
+
+      if (!code || !code.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Code cannot be empty'
+        });
+      }
+
+      if (!language) {
+        return res.status(400).json({
+          success: false,
+          error: 'Language is required'
+        });
+      }
+
+      const result = await codeExecutor.executeCode(
+        code,
+        language,
+        input || '',
+        timeLimit
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to execute code'
+      });
+    }
+  }
+
+  /**
+   * GET /api/interviews/code-runtime-health
+   * Check whether code execution backend is reachable
+   */
+  async getCodeRuntimeHealth(req, res) {
+    try {
+      const healthy = await codeExecutor.healthCheck();
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          healthy,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to check code runtime health',
       });
     }
   }
@@ -284,7 +363,7 @@ class InterviewController {
       res.status(200).json({
         success: true,
         message: 'Interview updated successfully',
-        data: interview
+        data: withViewerRole(interview, req.user._id)
       });
     } catch (error) {
       console.error('❌ Update interview error:', error);
@@ -469,7 +548,7 @@ class InterviewController {
       res.status(200).json({
         success: true,
         message: 'Question deleted successfully',
-        data: interview
+        data: withViewerRole(interview, req.user._id)
       });
     } catch (error) {
       res.status(500).json({
