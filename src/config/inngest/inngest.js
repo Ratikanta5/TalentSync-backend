@@ -1,6 +1,6 @@
 const { Inngest } = require("inngest");
 const connectDB = require("../db/connectDB");
-const { User } = require("../../models/User");
+const User = require("../../database/models/User");
 const { upsertStreamUser, deleteStreamUser } = require("../stream/stream");
 
 // Create Inngest client
@@ -34,7 +34,9 @@ const syncUser = inngest.createFunction(
 
     await upsertStreamUser({
         id: newUser.clerkId.toString(),
+        name: newUser.name || email_addresses[0]?.email_address,
         image: newUser.profileImage,
+        role: 'candidate' // Default new users to candidate
     });
   }
 );

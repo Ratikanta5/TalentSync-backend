@@ -1,27 +1,9 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+/**
+ * DEPRECATED: This file is kept for backward compatibility only.
+ * Please use /database/models/User.js instead
+ */
 
-const userScehema = new Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    profileImage: {
-        type: String,
-        default: "",
-    },
-    clerkId: {
-        type: String,
-        required: true,
-        unique: true,
+const User = require('../database/models/User');
 
-    }
-
-}, { timestamps: true })
-
-module.exports.User = mongoose.model("User", userScehema);
+module.exports = User;
+module.exports.User = User;

@@ -19,7 +19,7 @@ const sessionSchema = new Schema({
     participant: {
         type:  Schema.Types.ObjectId,
         ref: "User",
-        default:null
+        default: null
     },
     status:{
         type: String,
@@ -28,7 +28,21 @@ const sessionSchema = new Schema({
     },
     callId:{
         type: String,
-        default:""
+        required: true,
+        index: true
+    },
+    channelId:{
+        type: String,
+        required: true,
+        index: true
+    },
+    startedAt:{
+        type: Date,
+        default: null
+    },
+    completedAt:{
+        type: Date,
+        default: null
     }
 },{timestamps: true})
 

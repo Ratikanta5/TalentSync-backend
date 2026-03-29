@@ -1,12 +1,10 @@
-const express= require('express');
-
+const express = require('express');
 const router = express.Router();
-const {getStreamToken } = require('../controllers/chatController');
+const { getStreamToken } = require('../controllers/chatController');
 const { protectRoute } = require('../middleware/protectRoute');
 
-
-
-router.get("/token",protectRoute, getStreamToken);
+// Protected endpoint - requires authentication
+router.get("/token", protectRoute, getStreamToken);
 
 
 
