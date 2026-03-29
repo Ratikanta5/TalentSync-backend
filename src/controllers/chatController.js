@@ -55,25 +55,30 @@ module.exports.getStreamToken = async (req, res) => {
         }
 
         // ✅ STEP 3: Generate VIDEO token (for Stream Video SDK)
-        // Must grant access to all calls with proper permissions
+        // Map app roles to Stream Video built-in call roles.
+        // Stream Video does not understand app-specific roles like "interviewer".
         console.log('📞 Generating video token for user:', userId);
         let videoToken;
         try {
+            const streamVideoRole =
+              userRole === 'admin'
+                ? 'admin'
+                : userRole === 'interviewer'
+                  ? 'host'
+                  : 'user';
+
             // Generate video token with all required metadata
             const videoTokenConfig = {
                 user_id: userId,
                 call_cids: ["default/*"], // Allow joining any call in "default" type
+                role: streamVideoRole,
             };
-            
-            // Add role if available for permission-based access
-            if (userRole && userRole !== 'candidate') {
-                videoTokenConfig.role = userRole || 'user';
-            }
-            
+
             console.log('🔐 Video token config:', {
               user_id: videoTokenConfig.user_id,
               call_cids: videoTokenConfig.call_cids,
-              role: videoTokenConfig.role || 'default'
+              appRole: userRole || 'unknown',
+              role: videoTokenConfig.role
             });
             
             videoToken = streamClient.generateCallToken(videoTokenConfig);

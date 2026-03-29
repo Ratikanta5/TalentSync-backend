@@ -597,6 +597,12 @@ exports.joinInterview = async (req, res) => {
       role: req.user.role
     });
 
+    // Add candidate to the Stream chat channel so the chat token can read/watch it
+    if (interview.streamChannelId) {
+      const channel = chatClient.channel("messaging", interview.streamChannelId);
+      await channel.addMembers([clerkId]);
+    }
+
     // Update candidate status
     interview.candidates[candidateIndex].status = 'joined';
     interview.candidates[candidateIndex].joinedAt = new Date();
